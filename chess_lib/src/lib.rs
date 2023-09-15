@@ -102,16 +102,24 @@ impl ChessBoard {
     }
     fn genrate_pawn_moves(&self, x: usize, y: usize, color: Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
+        let front_piece = &self.board[y][x].unwrap();
 
-        if matches!(color, Color::White) {
-            if (y == 6 || y == 1) && !(y > 7) {
-                if let Color::White = color {
-                    moves.push((x, y + 2))
-                } else {
-                    moves.push((x, y - 2))
+        if matches!(color, Color::White){
+            if matches!(front_piece(Color), color) {
+
+                if (y == 6 || y == 1) && !(y > 7) {
+                        moves.push((x, y + 2))
                 }
             }
+        } else{
+            if (y == 6 || y == 1) && !(y > 7) {
+                moves.push((x, y -2))
+            
         }
+    }
+
+
+            moves.push(())
         moves
         // if moves.len() != 0 {
         //     moves
