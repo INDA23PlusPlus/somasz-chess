@@ -22,6 +22,17 @@ impl ChessPiece {
             ChessPiece::King(_) => "King",
         }
     }
+
+    fn get_color(&self) -> &Color {
+        match self {
+            ChessPiece::Bishop(x) => x,
+            ChessPiece::Pawn(x) => x,
+            ChessPiece::Rook(x) => x,
+            ChessPiece::Knight(x) => x,
+            ChessPiece::Queen(x) => x,
+            ChessPiece::King(x) => x,
+        }
+    }
 }
 pub struct ChessBoard {
     trun: u32,
@@ -29,7 +40,7 @@ pub struct ChessBoard {
 }
 
 impl ChessBoard {
-    fn create() -> ChessBoard {
+    pub fn create() -> ChessBoard {
         // Creates an instance of the ChessBoard struct with the pieces in the starting positions
 
         ChessBoard {
@@ -83,14 +94,14 @@ impl ChessBoard {
         }
     }
 
-    fn select_piece(&self, x: usize, y: usize) -> Option<Vec<(usize, usize)>> {
+    pub fn select_piece(&self, x: usize, y: usize) -> Option<Vec<(usize, usize)>> {
         // Returns the selected pieces moves as an array of possible coordinates
         let selected_piece = &self.board[y][x];
 
         match selected_piece {
             Some(piece) => match piece {
                 ChessPiece::Pawn(Color::White) => Some(self.genrate_pawn_moves(x, y, Color::White)),
-                ChessPiece::Pawn(Color::Black) => todo!(),
+                ChessPiece::Pawn(Color::Black) => Some(self.genrate_pawn_moves(x, y, Color::Black)),
                 ChessPiece::Rook(_) => todo!(),
                 ChessPiece::Knight(_) => todo!(),
                 ChessPiece::Bishop(_) => todo!(),
@@ -102,24 +113,27 @@ impl ChessBoard {
     }
     fn genrate_pawn_moves(&self, x: usize, y: usize, color: Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
-        let front_piece = &self.board[y][x].unwrap();
 
-        if matches!(color, Color::White){
-            if matches!(front_piece(Color), color) {
+        if matches!(color, Color::White) {
+            let front_piece = &self.board[y - 1][x];
+            if matches!(front_piece, &Option::None) {
+                if (y == 6 || y == 1) {
+                    moves.push((x, y - 2))
+                }
 
+                moves.push((x, y - 1))
+            }
+        } else {
+            let front_piece = &self.board[y + 1][x];
+            if matches!(front_piece, None) {
                 if (y == 6 || y == 1) && !(y > 7) {
-                        moves.push((x, y + 2))
+                    moves.push((x, y + 2))
+                }
+                if !(y > 7) {
+                    moves.push((x, y + 1))
                 }
             }
-        } else{
-            if (y == 6 || y == 1) && !(y > 7) {
-                moves.push((x, y -2))
-            
         }
-    }
-
-
-            moves.push(())
         moves
         // if moves.len() != 0 {
         //     moves
@@ -193,15 +207,23 @@ mod tests {
                 assert_eq!(test_state, correct_state)
             }
         }
-        #[test]
-        fn piece_select_test() {
-            let board = ChessBoard::create();
-            let piece = board.select_piece(0, 6);
-            let correct_coord = vec![(0, 5), (0, 4)];
-            match piece {
-                Some(coord) => assert_eq!(coord, correct_coord),
-                None => assert!(false),
-            }
+    }
+    #[test]
+    fn piece_pawn_white_test() {
+        let board = ChessBoard::create();
+        let coord = board.select_piece(0, 6).unwrap();
+        let correct_coord: Vec<(usize, usize)> = vec![(0, 4), (0, 5)];
+        for i in 0..coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
+        }
+    }
+    #[test]
+    fn select_pawn_black_test() {
+        let board = ChessBoard::create();
+        let coord = board.select_piece(0, 1).unwrap();
+        let correct_coord: Vec<(usize, usize)> = vec![(0, 3), (0, 2)];
+        for i in 0..coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
         }
     }
 }
