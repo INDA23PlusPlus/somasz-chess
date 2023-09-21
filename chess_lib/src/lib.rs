@@ -1,3 +1,4 @@
+#![allow(unused)]
 pub enum Color {
     White,
     Black,
@@ -22,7 +23,6 @@ impl ChessPiece {
             ChessPiece::King(_) => "King",
         }
     }
-
     fn get_color(&self) -> &Color {
         match self {
             ChessPiece::Bishop(x) => x,
@@ -103,12 +103,102 @@ impl ChessBoard {
                 ChessPiece::Pawn(color) => Some(self.genrate_pawn_moves(x, y, color)),
                 ChessPiece::Rook(color) => Some(self.gnerate_rook_moves(x, y, color)),
                 ChessPiece::Knight(color) => Some(self.gnerate_knight_moves(x, y, color)),
-                ChessPiece::Bishop(color) => todo!(),
+                ChessPiece::Bishop(color) => Some(self.generate_bishop_moves(x, y, color)),
                 ChessPiece::Queen(color) => todo!(),
                 ChessPiece::King(color) => todo!(),
             },
             None => None,
         }
+    }
+    fn generate_bishop_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
+        let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
+
+        let mut counter: i32 = 1;
+        let mut square = &self.board[y + counter as usize][x + counter as usize];
+
+        loop {
+            match square {
+                Some(piece) => {
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x + counter as usize, y + counter as usize));
+                        break;
+                    }
+                    break;
+                }
+
+                None => moves.push((x + counter as usize, y + counter as usize)),
+            }
+            counter += 1;
+            if (x + counter as usize) >= 8 || (y + counter as usize) >= 8 {
+                break;
+            };
+            square = &self.board[y + counter as usize][x + counter as usize];
+        }
+        let mut counter: i32 = 1;
+        let mut square = &self.board[y + counter as usize][x - counter as usize];
+
+        loop {
+            match square {
+                Some(piece) => {
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x - counter as usize, y + counter as usize));
+                        break;
+                    }
+                    break;
+                }
+
+                None => moves.push((x - counter as usize, y + counter as usize)),
+            }
+            counter += 1;
+            if (x as i32 - counter) <= -1 || (y + counter as usize) >= 8 {
+                break;
+            };
+            square = &self.board[y + counter as usize][x - counter as usize];
+        }
+
+        let mut counter: i32 = 1;
+        let mut square = &self.board[y - counter as usize][x + counter as usize];
+
+        loop {
+            match square {
+                Some(piece) => {
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x + counter as usize, y - counter as usize));
+                        break;
+                    }
+                    break;
+                }
+                None => moves.push((x + counter as usize, y - counter as usize)),
+            }
+
+            counter += 1;
+            if (x + counter as usize) >= 8 || (y as i32 - counter) <= -1 {
+                break;
+            };
+            square = &self.board[y - counter as usize][x + counter as usize];
+        }
+        let mut counter: i32 = 1;
+        let mut square = &self.board[y - counter as usize][x - counter as usize];
+
+        loop {
+            match square {
+                Some(piece) => {
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x - counter as usize, y - counter as usize));
+                        break;
+                    }
+                    break;
+                }
+
+                None => moves.push((x - counter as usize, y - counter as usize)),
+            }
+            counter += 1;
+            if (y as i32 - counter) <= -1 || (x as i32 - counter) <= -1 {
+                break;
+            };
+            square = &self.board[y - counter as usize][x - counter as usize];
+        }
+        moves
     }
     fn gnerate_knight_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
@@ -211,15 +301,16 @@ impl ChessBoard {
         let mut counter: i32 = 1;
         let mut square = &self.board[y][x + counter as usize];
 
-        while match self.decide_square_content_color(square) {
-            Some(x) => !matches!(x, color),
-            None => true,
-        } {
+        loop {
             match square {
                 Some(piece) => {
-                    moves.push((x + counter as usize, y));
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x + counter as usize, y));
+                        break;
+                    }
                     break;
                 }
+
                 None => moves.push((x + counter as usize, y)),
             }
             counter += 1;
@@ -231,15 +322,16 @@ impl ChessBoard {
         let mut counter: i32 = 1;
         let mut square = &self.board[y][x - counter as usize];
 
-        while match self.decide_square_content_color(square) {
-            Some(x) => !matches!(x, color),
-            None => true,
-        } {
+        loop {
             match square {
                 Some(piece) => {
-                    moves.push((x - counter as usize, y));
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x - counter as usize, y));
+                        break;
+                    }
                     break;
                 }
+
                 None => moves.push((x - counter as usize, y)),
             }
             counter += 1;
@@ -252,14 +344,13 @@ impl ChessBoard {
         let mut counter: i32 = 1;
         let mut square = &self.board[y + counter as usize][x];
 
-        while match self.decide_square_content_color(square) {
-            Some(x) => !matches!(x, color),
-            None => true,
-        } || (y + counter as usize) < 8
-        {
+        loop {
             match square {
                 Some(piece) => {
-                    moves.push((x, y + counter as usize));
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x, y + counter as usize));
+                        break;
+                    }
                     break;
                 }
                 None => moves.push((x, y + counter as usize)),
@@ -273,14 +364,13 @@ impl ChessBoard {
         let mut counter: i32 = 1;
         let mut square = &self.board[y - counter as usize][x];
 
-        while match self.decide_square_content_color(square) {
-            Some(x) => !matches!(x, color),
-            None => true,
-        } || (y as i32 - counter) > -1
-        {
+        loop {
             match square {
                 Some(piece) => {
-                    moves.push((x, y - counter as usize));
+                    if !matches!(piece.get_color(), color) {
+                        moves.push((x, y - counter as usize));
+                        break;
+                    }
                     break;
                 }
                 None => moves.push((x, y - counter as usize)),
@@ -293,7 +383,6 @@ impl ChessBoard {
         }
         moves
     }
-
     fn genrate_pawn_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
 
@@ -308,7 +397,7 @@ impl ChessBoard {
                 }
                 if (x as i32 - 1) >= 0 {
                     let fleft_piece = &self.board[y - 1][x - 1];
-                    if matches!(fleft_piece, Some(ChessPiece)) {
+                    if matches!(fleft_piece, Some(_)) {
                         let piece = fleft_piece.as_ref().unwrap().get_color();
                         if let &Color::Black = piece {
                             moves.push((x - 1, y - 1))
@@ -317,7 +406,7 @@ impl ChessBoard {
                 }
                 if x + 1 < 8 {
                     let fright_piece = &self.board[y - 1][x + 1];
-                    if matches!(fright_piece, Some(ChessPiece)) {
+                    if matches!(fright_piece, Some(_)) {
                         let piece = fright_piece.as_ref().unwrap().get_color();
                         if let &Color::Black = piece {
                             moves.push((x + 1, y - 1))
@@ -336,7 +425,7 @@ impl ChessBoard {
                 }
                 if (x as i32 - 1) >= 0 {
                     let fleft_piece = &self.board[y + 1][x - 1];
-                    if matches!(fleft_piece, Some(ChessPiece)) {
+                    if matches!(fleft_piece, Some(_)) {
                         let piece = fleft_piece.as_ref().unwrap().get_color();
                         if let &Color::White = piece {
                             moves.push((x - 1, y + 1))
@@ -345,7 +434,7 @@ impl ChessBoard {
                 }
                 if x + 1 < 8 {
                     let fright_piece = &self.board[y + 1][x + 1];
-                    if matches!(fright_piece, Some(ChessPiece)) {
+                    if matches!(fright_piece, Some(_)) {
                         let piece = fright_piece.as_ref().unwrap().get_color();
                         if let &Color::White = piece {
                             moves.push((x + 1, y + 1))
@@ -355,15 +444,6 @@ impl ChessBoard {
             }
         }
         moves
-    }
-    fn decide_square_content_color(&self, square: &Option<ChessPiece>) -> Option<Color> {
-        match square {
-            Some(piece) => match piece.get_color() {
-                Color::White => Some(Color::White),
-                Color::Black => Some(Color::Black),
-            },
-            None => None,
-        }
     }
 }
 
@@ -627,6 +707,7 @@ mod tests {
             (4, 7),
             (4, 2),
             (4, 1),
+            // (4, 0),
         ];
         let coord = board.select_piece(4, 3).unwrap();
         for i in 0..correct_coord.len() {
@@ -704,6 +785,50 @@ mod tests {
             (0, 5),
             (2, 5),
         ];
+        for i in 0..correct_coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
+        }
+    }
+    #[test]
+    fn select_bishop_test() {
+        let board = ChessBoard {
+            board: [
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(ChessPiece::Bishop(Color::White)),
+                    None,
+                    None,
+                    None,
+                ],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+            ],
+            turn: 1,
+        };
+        let correct_coord = vec![
+            (5, 4),
+            (6, 5),
+            (7, 6),
+            (3, 4),
+            (2, 5),
+            (1, 6),
+            (0, 7),
+            (5, 2),
+            (6, 1),
+            (7, 0),
+            (3, 2),
+            (2, 1),
+            (1, 0),
+        ];
+        let coord = board.select_piece(4, 3).unwrap();
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
