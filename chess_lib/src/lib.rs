@@ -1,10 +1,11 @@
 #![allow(unused)]
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Color {
     White,
     Black,
 }
+#[derive(Clone)]
 pub enum ChessPiece {
     Pawn(Color),
     Rook(Color),
@@ -36,16 +37,19 @@ impl ChessPiece {
         }
     }
 }
+#[derive(Clone)]
 pub struct ChessBoard {
     turn: u32,
     board: [[Option<ChessPiece>; 8]; 8],
+    removed_black: Vec<ChessPiece>,
+    removed_white: Vec<ChessPiece>,
 }
 
 impl ChessBoard {
-    pub fn create() -> ChessBoard {
+    pub fn create() -> Self {
         // Creates an instance of the ChessBoard struct with the pieces in the starting positions
 
-        ChessBoard {
+        Self {
             turn: 1,
             board: [
                 [
@@ -93,11 +97,14 @@ impl ChessBoard {
                     Some(ChessPiece::Rook(Color::White)),
                 ],
             ],
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
         }
     }
-
-    pub fn select_piece(&self, x: usize, y: usize) -> Option<Vec<(usize, usize)>> {
+    pub fn select_piece(&self, location: (usize, usize)) -> Option<Vec<(usize, usize)>> {
         /// Returns the selected pieces moves as an Option<Vec<(usize, usize)>> of possible coordinates
+        let (x, y) = location;
+
         let selected_piece = &self.board[y][x];
 
         match selected_piece {
@@ -112,6 +119,23 @@ impl ChessBoard {
             None => None,
         }
     }
+    pub fn set_piece(&mut self, source: (usize, usize), destination: (usize, usize)) {
+        let selected_piece = &self.board[source.1][source.0];
+        let selected_square = &self.board[destination.1][destination.0];
+
+        if let Some(piece) = selected_square {
+            match piece.get_color() {
+                Color::Black => self.removed_black.push(piece.clone()),
+                Color::White => self.removed_white.push(piece.clone()),
+            }
+        }
+        self.board[destination.1][destination.0] = Some(selected_piece.clone().unwrap());
+        self.board[source.1][source.0] = None;
+    }
+    pub fn increase_turn(&mut self) {
+        self.turn += 1;
+    }
+
     fn generate_king_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
         if !((y as i32 - 1) < 0) {
@@ -815,23 +839,25 @@ mod tests {
                 [None, None, None, None, None, None, None, None],
             ],
             turn: 1,
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
         };
-        let coord = board.select_piece(3, 3).unwrap();
+        let coord = board.select_piece((3, 3)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(3, 2)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(6, 6).unwrap();
+        let coord = board.select_piece((6, 6)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(6, 4), (6, 5)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(1, 6).unwrap();
+        let coord = board.select_piece((1, 6)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(0, 5), (2, 5)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(0, 6).unwrap();
+        let coord = board.select_piece((0, 6)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(1, 5)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
@@ -869,13 +895,15 @@ mod tests {
                 [None, None, None, None, None, None, None, None],
             ],
             turn: 1,
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
         };
-        let coord = board.select_piece(3, 3).unwrap();
+        let coord = board.select_piece((3, 3)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(3, 4)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(6, 1).unwrap();
+        let coord = board.select_piece((6, 1)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![(6, 3), (6, 2)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
@@ -904,6 +932,8 @@ mod tests {
                 [None, None, None, None, None, None, None, None],
             ],
             turn: 1,
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
         };
         let correct_coord = vec![
             (5, 3),
@@ -921,7 +951,7 @@ mod tests {
             (4, 1),
             (4, 0),
         ];
-        let coord = board.select_piece(4, 3).unwrap();
+        let coord = board.select_piece((4, 3)).unwrap();
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
@@ -955,6 +985,8 @@ mod tests {
                 [None, None, None, None, None, None, None, None],
             ],
             turn: 1,
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
         };
         let correct_coord = vec![
             (5, 3),
@@ -969,7 +1001,7 @@ mod tests {
             (4, 1),
             // (4, 0),
         ];
-        let coord = board.select_piece(4, 3).unwrap();
+        let coord = board.select_piece((4, 3)).unwrap();
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
@@ -977,6 +1009,8 @@ mod tests {
     #[test]
     fn select_knight_test() {
         let board = ChessBoard {
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
             board: [
                 [None, None, None, None, None, None, None, None],
                 [
@@ -1034,7 +1068,7 @@ mod tests {
             ],
             turn: 1,
         };
-        let coord = board.select_piece(3, 3).unwrap();
+        let coord = board.select_piece((3, 3)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![
             // (2, 1),
             (4, 1),
@@ -1048,7 +1082,7 @@ mod tests {
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(1, 7).unwrap();
+        let coord = board.select_piece((1, 7)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![
             // (2, 1),
             (0, 5),
@@ -1061,6 +1095,8 @@ mod tests {
     #[test]
     fn select_king_test() {
         let board = ChessBoard {
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
             board: [
                 [None, None, None, None, None, None, None, None],
                 [None, None, None, None, None, None, None, None],
@@ -1100,7 +1136,7 @@ mod tests {
             ],
             turn: 1,
         };
-        let coord = board.select_piece(1, 3).unwrap();
+        let coord = board.select_piece((1, 3)).unwrap();
         let correct_coord: Vec<(usize, usize)> = vec![
             (0, 2),
             (2, 2),
@@ -1114,7 +1150,7 @@ mod tests {
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
-        let coord = board.select_piece(6, 5).unwrap();
+        let coord = board.select_piece((6, 5)).unwrap();
         let correct_coord: Vec<(usize, usize)> =
             vec![(7, 4), (6, 4), (5, 6), (7, 6), (6, 6), (5, 5), (7, 5)];
         for i in 0..correct_coord.len() {
@@ -1124,6 +1160,8 @@ mod tests {
     #[test]
     fn select_bishop_test() {
         let board = ChessBoard {
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
             board: [
                 [
                     None,
@@ -1178,7 +1216,7 @@ mod tests {
             (2, 1),
             (1, 0),
         ];
-        let coord = board.select_piece(4, 3).unwrap();
+        let coord = board.select_piece((4, 3)).unwrap();
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
@@ -1186,6 +1224,8 @@ mod tests {
     #[test]
     fn select_queen_test() {
         let board = ChessBoard {
+            removed_black: vec![ChessPiece::Pawn(Color::Black); 0],
+            removed_white: vec![ChessPiece::Pawn(Color::White); 0],
             board: [
                 [
                     None,
@@ -1259,7 +1299,17 @@ mod tests {
             (2, 1),
             (1, 0),
         ];
-        let coord = board.select_piece(4, 3).unwrap();
+        let coord = board.select_piece((4, 3)).unwrap();
+        for i in 0..correct_coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
+        }
+    }
+    #[test]
+    fn set_piece_test() {
+        let mut board = ChessBoard::create();
+        board.set_piece((0, 6), (0, 5));
+        let coord = board.select_piece((0, 5)).unwrap();
+        let correct_coord = vec![(0, 4)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
