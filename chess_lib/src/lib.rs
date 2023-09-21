@@ -37,8 +37,8 @@ impl ChessPiece {
     }
 }
 pub struct ChessBoard {
-    pub turn: u32,
-    pub board: [[Option<ChessPiece>; 8]; 8],
+    turn: u32,
+    board: [[Option<ChessPiece>; 8]; 8],
 }
 
 impl ChessBoard {
@@ -97,7 +97,7 @@ impl ChessBoard {
     }
 
     pub fn select_piece(&self, x: usize, y: usize) -> Option<Vec<(usize, usize)>> {
-        // Returns the selected pieces moves as an array of possible coordinates
+        /// Returns the selected pieces moves as an Option<Vec<(usize, usize)>> of possible coordinates
         let selected_piece = &self.board[y][x];
 
         match selected_piece {
@@ -107,10 +107,95 @@ impl ChessBoard {
                 ChessPiece::Knight(color) => Some(self.generate_knight_moves(x, y, color)),
                 ChessPiece::Bishop(color) => Some(self.generate_bishop_moves(x, y, color)),
                 ChessPiece::Queen(color) => Some(self.generate_queen_moves(x, y, color)),
-                ChessPiece::King(color) => todo!(),
+                ChessPiece::King(color) => Some(self.generate_king_moves(x, y, color)),
             },
             None => None,
         }
+    }
+    fn generate_king_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
+        let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
+        if !((y as i32 - 1) < 0) {
+            if !((x as i32 - 1) < 0) {
+                let square = &self.board[y - 1][x - 1];
+                if let Some(piece) = square {
+                    if piece.get_color() != color {
+                        moves.push((x - 1, y - 1))
+                    }
+                } else {
+                    moves.push((x - 1, y - 1))
+                }
+            }
+            if x + 1 < 8 {
+                let square = &self.board[y - 1][x + 1];
+                if let Some(piece) = square {
+                    if piece.get_color() != color {
+                        moves.push((x + 1, y - 1))
+                    }
+                } else {
+                    moves.push((x + 1, y - 1))
+                }
+            }
+            let square = &self.board[y - 1][x];
+            if let Some(piece) = square {
+                if piece.get_color() != color {
+                    moves.push((x, y - 1))
+                }
+            } else {
+                moves.push((x, y - 1))
+            }
+        }
+        if y + 1 < 8 {
+            if !((x as i32 - 1) < 0) {
+                let square = &self.board[y + 1][x - 1];
+                if let Some(piece) = square {
+                    if piece.get_color() != color {
+                        moves.push((x - 1, y + 1))
+                    }
+                } else {
+                    moves.push((x - 1, y + 1))
+                }
+            }
+            if x + 1 < 8 {
+                let square = &self.board[y + 2][x + 1];
+                if let Some(piece) = square {
+                    if piece.get_color() != color {
+                        moves.push((x + 1, y + 1))
+                    }
+                } else {
+                    moves.push((x + 1, y + 1))
+                }
+            }
+            let square = &self.board[y - 1][x];
+            if let Some(piece) = square {
+                if piece.get_color() != color {
+                    moves.push((x, y + 1))
+                }
+            } else {
+                moves.push((x, y + 1))
+            }
+        }
+        if !((x as i32 - 1) < 0) {
+            let square = &self.board[y][x - 1];
+            if let Some(piece) = square {
+                if piece.get_color() != color {
+                    moves.push((x - 1, y))
+                }
+            } else {
+                moves.push((x - 1, y))
+            }
+        }
+
+        if x + 1 < 8 {
+            let square = &self.board[y][x + 1];
+            if let Some(piece) = square {
+                if piece.get_color() != color {
+                    moves.push((x + 1, y))
+                }
+            } else {
+                moves.push((x + 1, y))
+            }
+        }
+        moves
     }
     fn generate_queen_moves(&self, x: usize, y: usize, color: &Color) -> Vec<(usize, usize)> {
         let mut moves: Vec<(usize, usize)> = vec![(0, 0); 0];
@@ -969,6 +1054,69 @@ mod tests {
             (0, 5),
             (2, 5),
         ];
+        for i in 0..correct_coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
+        }
+    }
+    #[test]
+    fn select_king_test() {
+        let board = ChessBoard {
+            board: [
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+                [
+                    None,
+                    Some(ChessPiece::King(Color::Black)),
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ],
+                [
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(ChessPiece::Pawn(Color::White)),
+                    None,
+                    Some(ChessPiece::Pawn(Color::Black)),
+                ],
+                [
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(ChessPiece::King(Color::White)),
+                    None,
+                ],
+                [None, None, None, None, None, None, None, None],
+                [None, None, None, None, None, None, None, None],
+            ],
+            turn: 1,
+        };
+        let coord = board.select_piece(1, 3).unwrap();
+        let correct_coord: Vec<(usize, usize)> = vec![
+            (0, 2),
+            (2, 2),
+            (1, 2),
+            (0, 4),
+            (2, 4),
+            (1, 4),
+            (0, 3),
+            (2, 3),
+        ];
+        for i in 0..correct_coord.len() {
+            assert_eq!(coord[i], correct_coord[i]);
+        }
+        let coord = board.select_piece(6, 5).unwrap();
+        let correct_coord: Vec<(usize, usize)> =
+            vec![(7, 4), (6, 4), (5, 6), (7, 6), (6, 6), (5, 5), (7, 5)];
         for i in 0..correct_coord.len() {
             assert_eq!(coord[i], correct_coord[i]);
         }
