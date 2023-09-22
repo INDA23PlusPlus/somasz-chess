@@ -47,8 +47,7 @@ pub struct ChessBoard {
 
 impl ChessBoard {
     pub fn create() -> Self {
-        // Creates an instance of the ChessBoard struct with the pieces in the starting positions
-
+        /// Creates an instance of the ChessBoard struct with the pieces in the starting positions, turn to one and empty removed piece vectors.
         Self {
             turn: 1,
             board: [
@@ -102,7 +101,8 @@ impl ChessBoard {
         }
     }
     pub fn select_piece(&self, location: (usize, usize)) -> Option<Vec<(usize, usize)>> {
-        /// Returns the selected pieces moves as an Option<Vec<(usize, usize)>> of possible coordinates
+        /// Given the coordinates returns the selected pieces moves as an Option<Vec<(usize, usize)>> of possible coordinates.
+        /// If a square with None values is picked returns None
         let (x, y) = location;
 
         let selected_piece = &self.board[y][x];
@@ -120,6 +120,9 @@ impl ChessBoard {
         }
     }
     pub fn set_piece(&mut self, source: (usize, usize), destination: (usize, usize)) {
+        /// Given the original location of the piece (source) that is to be moved and the destination
+        /// it removes any pieces at destination into on of the removed_{color} vectors
+        /// and places the source piece at the destination position
         let selected_piece = &self.board[source.1][source.0];
         let selected_square = &self.board[destination.1][destination.0];
 
