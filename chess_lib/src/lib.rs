@@ -39,12 +39,12 @@ impl ChessPiece {
 }
 #[derive(Clone)]
 pub struct ChessBoard {
-    turn: u32,
-    board: [[Option<ChessPiece>; 8]; 8],
-    black_king_pos: (usize, usize),
-    white_king_pos: (usize, usize),
-    removed_black: Vec<ChessPiece>,
-    removed_white: Vec<ChessPiece>,
+    pub turn: u32,
+    pub board: [[Option<ChessPiece>; 8]; 8],
+    pub black_king_pos: (usize, usize),
+    pub white_king_pos: (usize, usize),
+    pub removed_black: Vec<ChessPiece>,
+    pub removed_white: Vec<ChessPiece>,
 }
 
 impl ChessBoard {
