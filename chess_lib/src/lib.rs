@@ -1,11 +1,11 @@
 #![allow(unused)]
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Color {
     White,
     Black,
 }
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum ChessPiece {
     Pawn(Color),
     Rook(Color),
